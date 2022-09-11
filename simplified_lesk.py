@@ -1,13 +1,14 @@
 import string
 
 import nltk
-from nltk.corpus import stopwords, wordnet as wn
+from nltk.corpus import stopwords
+from nltk.corpus import wordnet as wn
 
-stops = stopwords.words('english')
+stops = stopwords.words("english")
 
 
 def _build_example_set(examples):
-    """helper function to convert example lists from wordnet senses into sets"""
+    """convert example lists from wordnet senses into sets"""
     example_set = set()
     for example in examples:
         example_toks = nltk.word_tokenize(example)
@@ -16,13 +17,14 @@ def _build_example_set(examples):
 
 
 def _get_gloss(poss_sense):
-    """helper function, serves to show the user a token was not in wordnet's corpus"""
-    return '<UNK>' if isinstance(poss_sense, str) else poss_sense.definition()
+    """helper, serves to show the user a token was not in wordnet's corpus"""
+    return "<UNK>" if isinstance(poss_sense, str) else poss_sense.definition()
 
 
 def simplified_lesk(word: str, sent: str):
     """An implementation of the simplified lesk algorithm
-    it returns the best sense of a given word based on the token overlap of metalinguistic features
+    it returns the best sense of a given word based on
+    the token overlap of metalinguistic features
     of the wordnet entry and the token overlap of the sentence"""
     if not sent.islower():
         sent = sent.lower()
@@ -33,7 +35,9 @@ def simplified_lesk(word: str, sent: str):
     max_overlap = 0
     context = set(nltk.word_tokenize(sent))
     for sense in senses:
-        signature = _build_example_set(sense.examples()) | set(nltk.word_tokenize(sense.definition()))
+        signature = _build_example_set(sense.examples()) | set(
+            nltk.word_tokenize(sense.definition())
+        )
         overlap = len(signature.intersection(context))
         if overlap > max_overlap:
             max_overlap = overlap
@@ -49,7 +53,11 @@ def all_lesk_senses(corpus: str, glosses: bool = False):
     all_senses = []
     for sent in sents:
         sent_senses = []
-        toks = [tok for tok in nltk.word_tokenize(sent.lower()) if tok not in stops and tok not in string.punctuation]
+        toks = [
+            tok
+            for tok in nltk.word_tokenize(sent.lower())
+            if tok not in stops and tok not in string.punctuation
+        ]
         for tok in toks:
             best_sense = simplified_lesk(tok, sent)
             if glosses:
@@ -60,22 +68,23 @@ def all_lesk_senses(corpus: str, glosses: bool = False):
     return all_senses
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Getting the word senses for all words in a text
-    sentence = "Shall I compare thee to a summer's day? Thou art more lovely and more temperate."
+    sentence = "Shall I compare thee to a summer's day? " \
+               "Thou art more lovely and more temperate."
     sense_list_sents = all_lesk_senses(sentence, glosses=True)
 
     # printing out every sense
-    print('Full text senses')
+    print("Full text senses")
     for sent in sense_list_sents:
         for sense in sent:
             print(sense)
 
-    print('--------')  # for readability
+    print("--------")  # for readability
 
     # Getting the word senses for one word in a sentence
     sent = "Time flies like an arrow"
     word = "flies"
-    print('Single word sense')
+    print("Single word sense")
     sense = simplified_lesk(word, sent)
     print(sense, sense.definition())
