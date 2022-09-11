@@ -1,13 +1,13 @@
 import string
 
 import nltk
-
 from nltk.corpus import stopwords, wordnet as wn
 
 stops = stopwords.words('english')
 
 
 def _build_example_set(examples):
+    """helper function to convert example lists from wordnet senses into sets"""
     example_set = set()
     for example in examples:
         example_toks = nltk.word_tokenize(example)
@@ -16,10 +16,14 @@ def _build_example_set(examples):
 
 
 def _get_gloss(poss_sense):
+    """helper function, serves to show the user a token was not in wordnet's corpus"""
     return '<UNK>' if isinstance(poss_sense, str) else poss_sense.definition()
 
 
-def simplified_lesk(word, sent):
+def simplified_lesk(word: str, sent: str):
+    """An implementation of the simplified lesk algorithm
+    it returns the best sense of a given word based on the token overlap of metalinguistic features
+    of the wordnet entry and the token overlap of the sentence"""
     if not sent.islower():
         sent = sent.lower()
     senses = wn.synsets(word)
@@ -37,8 +41,11 @@ def simplified_lesk(word, sent):
     return best_sense
 
 
-def all_lesk_senses(sents, glosses=False):
-    sents = nltk.sent_tokenize(sents)
+def all_lesk_senses(corpus: str, glosses: bool = False):
+    """calculates the most likely sense for every token in a corpus using a lesk algorithm
+    WARNING: the return type is List[List[Tuple]] if glosses is True
+    otherwise, it is List[List[wordsense]]"""
+    sents = nltk.sent_tokenize(corpus)
     all_senses = []
     for sent in sents:
         sent_senses = []
